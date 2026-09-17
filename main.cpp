@@ -1,8 +1,13 @@
 // #include <iostream>
 // #include <vector>
 // #include <cmath>
+// #include <string>
+// #include <random>
+// #include <limits>
+// #include <iomanip>
 
 #include <bits/stdc++.h>
+
 using namespace std;
 
 struct Student // sukuriame objekta Studentas varda, pav, nd, exam
@@ -13,27 +18,32 @@ struct Student // sukuriame objekta Studentas varda, pav, nd, exam
     int exam;
 };
 
-float calAverage(vector<int> homework) // apskaiciuojame namu darbu vidurki
+// Calculation Functions:
+
+float calAverage(const vector<int> &homework) // apskaiciuojame namu darbu vidurki
 {
-    int n = homework.size();
-    float sum = 0;
+    if (homework.empty())
+        return 0.0f; // Prevent division by zero
 
-    for (int i = 0; i < n; i++)
+    float sum = 0.0f;
+    for (int mark : homework)
     {
-        sum = sum + homework[i];
+        sum += mark;
     }
-
-    float average = float(sum / n);
-    return average;
+    return sum / homework.size();
 }
 
 float calMedian(vector<int> homework) // apskaicuojame medianos vidurki
 {
+    if (homework.empty())
+        return 0.0f;
+
     sort(homework.begin(), homework.end());
     int n = homework.size();
+
     if (n % 2 == 0)
     {
-        return (homework[(n / 2) - 1] + homework[n / 2]) / 2;
+        return (homework[(n / 2) - 1] + homework[n / 2]) / 2.0f; // 2.0f preserves decimal
     }
     else
     {
@@ -41,176 +51,179 @@ float calMedian(vector<int> homework) // apskaicuojame medianos vidurki
     }
 }
 
-float calFinalScoreuMedian(const Student &s) // const - constant: doesnt let the data/ values to be changed
-{
-    float median = calMedian(s.homework);
-    float score = 0.4 * median + 0.6 * s.exam; // apskaiciuota pagal duota formule
-    return score;
-}
-
-float calFinalScoreAverage(const Student &s)
-{
-    float average = calAverage(s.homework);
-    float score = 0.4 * average + 0.6 * s.exam;
-    return score;
-}
-
-// void function is empty function; does not return any value
-
-void addStudentManually(vector<Student> &students) //& - push data inside list
-                                                   // pass by values and pass by referencwes
-{
-    Student s1; // creating objects
-    cout << "Enter the first name: ";
-    cin >> s1.firstName;
-    cout << "Enter the last name: ";
-    cin >> s1.lastName;
-    cout << "Enter exam result: ";
-    cin >> s1.exam;
-
-    int n;
-    cout << "Enter the number of homework: \n";
-    cin >> n;
-    cout << "Enter the score of your homeworks: " << endl;
-
-    for (int i = 0; i < n; i++)
-    {
-        int h;
-        cin >> h;
-        s1.homework.push_back(h);
-    }
-
-    students.push_back(s1); // pusch_back - insert values into the list
-    return;                 // using return (with no 0) because void function (empty function)
-}
-
-bool cmp(Student &s1, Student &s2) // True/ False
-{
-    if (s1.firstName == s2.firstName)
-    {
-        return s1.lastName < s2.lastName; // jeigu studentai turi vienodus vardus - tada tikrinamos ju pavardes
-    }
-    return s1.firstName < s2.firstName;
-}
-
-void displayStudentResults(vector<Student> students)
-{
-    if (students.size() == 0)
-    {
-        // check for empty students vector
-        cout << "There are no students currently.\n";
-        return;
-    }
-
-    sort(students.begin(), students.end(), cmp);
-
-    cout << "\n========== DISPLAY RESULTS ==========\n";
-
-    cout << "Choose calculation method:\n";
-    cout << "1. Average\n";
-    cout << "2. Median\n";
-    cout << "3. Both\n";
-    cout << "Enter your choice: ";
-    int choice;
-    cin >> choice;
-    if (choice < 1 || choice > 3)
-    {
-        cout << "Invalid choice, Enter your choice again: \n";
-        cin >> choice;
-    }
-    if (choice == 1)
-    {
-        cout << "First Name   Last Name    Average \n";
-        for (auto s : students)
-        {
-            cout << s.firstName << "    " << s.lastName << "   " << calAverage(s.homework) << endl;
-        }
-    }
-    else if (choice == 2)
-    {
-        cout << "First Name   Last Name    Median \n";
-        for (auto s : students)
-        {
-            cout << s.firstName << "    " << s.lastName << "    " << calMedian(s.homework) << endl;
-        }
-    }
-    else if (choice == 3)
-    {
-        cout << "First Name   Last Name    Average    Median \n";
-        for (auto s : students)
-        {
-            // auto takes the data type (int, string and etc.) - automatiskai nustato tipa
-            cout << s.firstName << "    " << s.lastName << "    " << calAverage(s.homework) << "    " << calMedian(s.homework) << endl;
-        }
-    }
-    return;
-}
-
-#include <iostream>
-#include <vector>
-#include <string>
-#include <random>
-
-using namespace std;
-
 int getRandomInt(int min, int max)
 {
-    static mt19937 gen(random_device{}()); // static -allows certain members to belong to the class or file
-                                           // rather than to individual objects or function calls
+    static mt19937 gen(random_device{}());
     uniform_int_distribution<int> dist(min, max);
     return dist(gen);
 }
 
+//void function is empty function; does not return any value
+
+void addStudentManually(vector<Student> &students)
+{
+    Student s;
+
+    cout << "\n--- Add Student ---\n";
+    cout << "Enter first name: ";
+    cin >> s.firstName;
+
+    cout << "Enter last name: ";
+    cin >> s.lastName;
+
+    //Validate exam grade (1 - 10)
+    cout << "Enter exam result (1-10): ";
+    while (!(cin >> s.exam) || s.exam < 1 || s.exam > 10)
+    {
+        cout << "Invalid exam grade! Enter an integer between 1 and 10: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // search it
+    }
+
+    //Validate number of homework assignments (0 - 10)
+    int n;
+    cout << "Enter the number of homework assignments (0-10): ";
+    while (!(cin >> n) || n < 0 || n > 10)
+    {
+        cout << "Invalid number! Enter a count between 0 and 10: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
+    //Validate each homework score (1 - 10)
+    for (int i = 0; i < n; i++)
+    {
+        int score;
+        cout << "Enter score for homework #" << (i + 1) << " (1-10): ";
+        while (!(cin >> score) || score < 1 || score > 10)
+        {
+            cout << "Invalid score! Enter an integer between 1 and 10: ";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        s.homework.push_back(score);
+    }
+
+    students.push_back(s);
+    cout << "Student added successfully!\n";
+}
+
+//kuriame funckija kuri generuoja "automatiskai" studentus
+
 void generateRandomStudents(vector<Student> &students)
 {
     int numberOfStudents;
-    cout << "\nHow many random students do you want to generate? ";
-    cin >> numberOfStudents;
+    cout << "\nHow many random students do you want to generate? (1-1000): ";
 
-    if (numberOfStudents <= 0)
+    // Validate student count
+    while (!(cin >> numberOfStudents) || numberOfStudents < 1 || numberOfStudents > 1000)
     {
-        cout << "Invalid number of students.\n";
-        return;
+        cout << "Invalid input! Please enter a number between 1 and 1000: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
-    vector<string> firstNames = {
+    //kadangi programa negali pati sukurti, nes dudoame sarasa random vardu/pavardziu
+
+    const vector<string> firstNames = {
         "John", "Peter", "Anna", "Mark", "Laura",
         "Tom", "Emma", "David", "Sarah", "Harsh"};
 
-    vector<string> lastNames = {
+    const vector<string> lastNames = {
         "Smith", "Brown", "Johnson", "Wilson", "Taylor",
         "Anderson", "Thomas", "Jackson", "White", "Harris"};
 
     for (int i = 0; i < numberOfStudents; i++)
     {
-        Student student;
+        Student s;
+        s.firstName = firstNames[getRandomInt(0, firstNames.size() - 1)];
+        s.lastName = lastNames[getRandomInt(0, lastNames.size() - 1)];
 
-        student.firstName = firstNames[getRandomInt(0, firstNames.size() - 1)];
-        student.lastName = lastNames[getRandomInt(0, lastNames.size() - 1)];
-
-        int homeworkCount = getRandomInt(2, 5); // it can be changed as per requirement
-
-        for (int i = 0; i < homeworkCount; i++)
+        int homeworkCount = getRandomInt(1, 10);
+        for (int j = 0; j < homeworkCount; j++) //for loop in other for loop
         {
-            int randomHomeWorkScore = getRandomInt(1, 10); // assuming grades are 1-10
-            student.homework.push_back(randomHomeWorkScore);
+            s.homework.push_back(getRandomInt(1, 10));
         }
 
-        student.exam = getRandomInt(1, 10);
-
-        students.push_back(student);
+        s.exam = getRandomInt(1, 10);
+        students.push_back(s);
     }
 
     cout << numberOfStudents << " random students generated successfully!\n";
-    return;
+}
+
+bool cmp(const Student &s1, const Student &s2)
+{
+    if (s1.firstName == s2.firstName)
+    {
+        return s1.lastName < s2.lastName;
+    }
+    return s1.firstName < s2.firstName;
+}
+
+void displayStudentResults(vector<Student> &students)
+{
+    if (students.empty())
+    {
+        cout << "\nThere are no students currently.\n";
+        return;
+    }
+
+    sort(students.begin(), students.end(), cmp);
+
+    cout << "\n========== Display Results ==========\n";
+    cout << "Choose calculation method:\n";
+    cout << "1. Average\n";
+    cout << "2. Median\n";
+    cout << "3. Both\n";
+    cout << "Enter your choice: ";
+
+    int choice;
+    // Repeatedly loop until user inputs 1, 2, or 3
+    while (!(cin >> choice) || choice < 1 || choice > 3)
+    {
+        cout << "Invalid choice! Enter 1, 2, or 3: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // This discards everything remaining on the line up to the Enter key, leaving the input buffer empty and ready for a fresh input attempt on the next loop iteration.
+    }
+
+    cout << fixed << setprecision(2);
+
+    if (choice == 1)
+    {
+        cout << left << setw(15) << "First Name" << setw(15) << "Last Name" << "Average\n";
+        cout << "-------------------------------------------\n";
+        for (const auto &s : students)
+        {
+            cout << left << setw(15) << s.firstName << setw(15) << s.lastName << calAverage(s.homework) << "\n";
+        }
+    }
+    else if (choice == 2)
+    {
+        cout << left << setw(15) << "First Name" << setw(15) << "Last Name" << "Median\n";
+        cout << "-------------------------------------------\n";
+        for (const auto &s : students)
+        {
+            cout << left << setw(15) << s.firstName << setw(15) << s.lastName << calMedian(s.homework) << "\n";
+        }
+    }
+    else if (choice == 3)
+    {
+        cout << left << setw(15) << "First Name" << setw(15) << "Last Name" << setw(12) << "Average" << "Median\n";
+        cout << "--------------------------------------------------------\n";
+        for (const auto &s : students)
+        {
+            cout << left << setw(15) << s.firstName << setw(15) << s.lastName
+                 << setw(12) << calAverage(s.homework) << calMedian(s.homework) << "\n";
+        }
+    }
 }
 
 void showMenu()
 {
-    cout << "====================================\n";
+    cout << "\n====================================\n";
     cout << "        STUDENT GRADE SYSTEM\n";
     cout << "====================================\n";
-
     cout << "1. Add student manually\n";
     cout << "2. Generate random students\n";
     cout << "3. Display student results\n";
@@ -220,16 +233,21 @@ void showMenu()
 int main()
 {
     vector<Student> students;
+    int choice = 0;
 
-    cout << "Enter your choice:\n";
-    int choice;
-
-    //(Do loop) - Kodo blokas bus ivykdytas viena karta pries patikrinant, ar salyga tenkinama.
-    // Tada ciklas bus kartojamas tol, kol salyga bus tenkinama.
     do
     {
         showMenu();
-        cin >> choice;
+        cout << "Enter your choice (1-4): ";
+
+        //Validates main menu choice directly
+        while (!(cin >> choice) || choice < 1 || choice > 4)
+        {
+            cout << "Invalid choice! Please enter a number from 1 to 4: ";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+
         switch (choice)
         {
         case 1:
@@ -242,11 +260,10 @@ int main()
             displayStudentResults(students);
             break;
         case 4:
-            return 0;
-        default:
-            cout << "Invalid choice, enter correct choice: \n";
+            cout << "Exiting program...\n";
             break;
         }
+
     } while (choice != 4);
 
     return 0;
