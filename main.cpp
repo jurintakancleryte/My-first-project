@@ -1,22 +1,15 @@
-// #include <iostream>
-// #include <vector>
-// #include <cmath>
-// #include <string>
-// #include <random>
-// #include <limits>
-// #include <iomanip>
-
 #include <bits/stdc++.h>
-
 using namespace std;
 
-struct Student // sukuriame objekta Studentas varda, pav, nd, exam
+struct Student 
 {
     string firstName;
     string lastName;
     vector<int> homework;
     int exam;
 };
+
+
 
 // Calculation Functions:
 
@@ -51,6 +44,9 @@ float calMedian(vector<int> homework) // apskaicuojame medianos vidurki
     }
 }
 
+//Enable the option to either enter a file or select a file.
+//Display the first 1,000 data entries.
+
 int getRandomInt(int min, int max)
 {
     static mt19937 gen(random_device{}());
@@ -77,7 +73,7 @@ void addStudentManually(vector<Student> &students)
     {
         cout << "Invalid exam grade! Enter an integer between 1 and 10: ";
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // search it
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); //suteikia informacija apie kiekviena duomenu tipa
     }
 
     // Validate number of homework assignments (0 - 10)
@@ -233,6 +229,8 @@ bool readStudentsFromFile(vector<Student> &students)
         cout << "Error: Could not open the file\n";
         return false;
     }
+        //padaryti kad butu galima irasyti faila arba pasirinkti
+        //parodyti pirmus 1000 duomenu
 
     // Read header
     string headerLine;
@@ -301,7 +299,7 @@ bool readStudentsFromFile(vector<Student> &students)
                 return false;
             }
 
-            student.homework.push_back(grade);  //psuh the grade into homework vector
+            student.homework.push_back(grade);  //push the grade into homework vector
         }
 
         // Read exam grade
@@ -329,7 +327,7 @@ bool readStudentsFromFile(vector<Student> &students)
             return false;
         }
 
-        // Make sure there is at least one homework
+        //Make sure there is at least one homework
         if (student.homework.empty())
         {
             cout << "Error: Student has no homework grades.\n";
@@ -337,6 +335,8 @@ bool readStudentsFromFile(vector<Student> &students)
         }
 
         students.push_back(student);
+        //reikia istrinti visus duomenis
+        // s.student.clear()
     }
 
     file.close();  //uzdarome faila, nes uzsima vietos
