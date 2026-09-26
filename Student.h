@@ -26,7 +26,8 @@ class Student{
     //setters
         void setName(const string& name); 
         void setSurname(const string& surname);
-        void addHomework(const vector<int>& homework);
+        void addHomework(int grade);
+        void setHomework(const vector<int>& homework);
         void setExam(double exam);  //shouldnt be a const bcwe calculate it (set it by formules)
 
     //calculations
