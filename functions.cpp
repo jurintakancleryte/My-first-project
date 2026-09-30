@@ -34,7 +34,7 @@ void addStudentManually(vector<Student> &students)
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
-    // Validate number of homework assignments (0-10)
+    // validate number of homework assignments (0-10)
     int count;
     cout << "Enter the number of homework assignments (0-10): ";
     while (!(cin >> count) || count < 0 || count > 10)
@@ -256,7 +256,7 @@ string selectOrEnterFile()
         return filename;
     }
 
-    return "kursiokai.txt"; //default value
+    return "kursiokai.txt"; // default value
 }
 
 bool readStudentsFromFile(const string &filename, vector<Student> &students)
@@ -269,7 +269,7 @@ bool readStudentsFromFile(const string &filename, vector<Student> &students)
         return false;
     }
 
-    //read header line
+    // read header line
     string headerLine;
     if (!getline(file, headerLine))
     {
@@ -284,7 +284,7 @@ bool readStudentsFromFile(const string &filename, vector<Student> &students)
 
     while (headerStream >> word)
     {
-        if (word.rfind("ND", 0) == 0) //rfind - finds maching word for ND
+        if (word.rfind("ND", 0) == 0) // rfind - finds maching word for ND
         {
             homeworkCount++;
         }
@@ -296,10 +296,10 @@ bool readStudentsFromFile(const string &filename, vector<Student> &students)
         return false;
     }
 
-    //read students from file using Student class stream reader
+    // read students from file using Student class stream reader
     Student tempStudent;
     while (tempStudent.readFromStream(file, homeworkCount))
-    //calling function to read the data
+    // calling function to read the data
     {
         students.push_back(tempStudent);
     }
@@ -313,4 +313,323 @@ bool readStudentsFromFile(const string &filename, vector<Student> &students)
     }
 
     return true;
+}
+
+void generateDatasetFile(const string &filename, int studentCount, int homeworkCount)
+{
+    cout << "\nGenerating file '" << filename << "' with " << studentCount << " students...\n";
+
+    auto start = chrono::high_resolution_clock::now();
+    // starts a counting (timing)
+
+    ofstream outFile(filename); // ofstream - write into a file
+    if (!outFile.is_open())
+    {
+        cerr << "Error: Could not create file " << filename << "\n";
+        return;
+    }
+
+    // write header line matching v0.1 format
+    outFile << left << setw(20) << "Vardas" << setw(20) << "Pavarde";
+    for (int i = 1; i <= homeworkCount; ++i)
+    {
+        outFile << setw(10) << ("ND" + to_string(i));
+        // to_string convers into a string
+    }
+    outFile << setw(10) << "Egz." << "\n";
+
+    // fast output buffering for large dataset file writing
+    string buffer;
+    buffer.reserve(1024 * 1024); // 1 MB buffer chunk
+
+    for (int i = 1; i <= studentCount; ++i)
+    {
+        stringstream ss;
+        ss << left << setw(20) << ("Vardas" + to_string(i))
+           << setw(20) << ("Pavarde" + to_string(i));
+
+        for (int j = 0; j < homeworkCount; ++j)
+        {
+            ss << setw(10) << getRandomInt(1, 10);
+        }
+        ss << setw(10) << getRandomInt(1, 10) << "\n"; // exam score
+        // stringstream - when we write a long string
+
+        buffer += ss.str();
+
+        // flush buffer when size exceeds 1 MB
+        if (buffer.size() >= 1024 * 1024)
+        {
+            outFile << buffer;
+            buffer.clear();
+        }
+    }
+
+    // empty remaining buffer
+    if (!buffer.empty())
+    {
+        outFile << buffer;
+    }
+
+    outFile.close();
+
+    // auto end - stops counting (timing)
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end - start;
+
+    cout << "Successfully generated '" << filename << "' in "
+         << fixed << setprecision(4) << elapsed.count() << " seconds.\n";
+    // nusako butent 4sk po kablelio tikslu laika
+}
+
+void generateAllDatasets()
+{
+    cout << "\n====================================\n";
+    cout << "      DATASET GENERATION MENU       \n";
+    cout << "====================================\n";
+    cout << "1. Generate 1,000 students (students_1000.txt)\n";
+    cout << "2. Generate 10,000 students (students_10000.txt)\n";
+    cout << "3. Generate 100,000 students (students_100000.txt)\n";
+    cout << "4. Generate 1,000,000 students (students_1000000.txt)\n";
+    cout << "5. Generate 10,000,000 students (students_10000000.txt)\n";
+    cout << "6. Generate ALL datasets (1K - 10M)\n";
+    cout << "7. Return to main menu\n";
+    cout << "Enter your choice (1-7): ";
+
+    int choice;
+    while (!(cin >> choice) || choice < 1 || choice > 7)
+    {
+        cout << "Invalid choice! Please enter a number between 1 and 7: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
+    switch (choice)
+    {
+    case 1:
+        generateDatasetFile("students_1000.txt", 1000);
+        break;
+    case 2:
+        generateDatasetFile("students_10000.txt", 10000);
+        break;
+    case 3:
+        generateDatasetFile("students_100000.txt", 100000);
+        break;
+    case 4:
+        generateDatasetFile("students_1000000.txt", 1000000);
+        break;
+    case 5:
+        generateDatasetFile("students_10000000.txt", 10000000);
+        break;
+    case 6:
+        generateDatasetFile("students_1000.txt", 1000);
+        generateDatasetFile("students_10000.txt", 10000);
+        generateDatasetFile("students_100000.txt", 100000);
+        generateDatasetFile("students_1000000.txt", 1000000);
+        generateDatasetFile("students_10000000.txt", 10000000);
+        break;
+    case 7:
+        break;
+    }
+}
+
+void separateStudents(const vector<Student> &allStudents,
+                      vector<Student> &belowFive,
+                      vector<Student> &fiveOrAbove,
+                      bool useMedian)
+{
+    // clearing the vectors
+    belowFive.clear();
+    fiveOrAbove.clear();
+
+    // accessing by reference
+    for (const auto &student : allStudents)
+    {
+        double finalGrade = student.calculateFinalGrade(useMedian);
+        if (finalGrade < 5.0)
+        {
+            belowFive.push_back(student);
+        }
+        else
+        {
+            fiveOrAbove.push_back(student);
+        }
+    }
+}
+
+// write student list and final grades to file
+bool writeStudentsToFile(const string &filename,
+                         const vector<Student> &students,
+                         bool useMedian)
+{
+    ofstream file(filename);
+    if (!file.is_open())
+    {
+        cerr << "Error: Could not create output file " << filename << "\n";
+        return false;
+    }
+
+    // header
+    file << left << setw(20) << "Vardas"
+         << setw(20) << "Pavarde"
+         << (useMedian ? "Galutinis (Med.)\n" : "Galutinis (Vid.)\n");
+    file << "-------------------------------------------------------\n";
+
+    string buffer;
+    buffer.reserve(1024 * 1024); // 1mb
+
+    for (const auto &s : students)
+    {
+        stringstream ss;
+        ss << left << setw(20) << s.getName()
+           << setw(20) << s.getSurname()
+           << fixed << setprecision(2) << s.calculateFinalGrade(useMedian) << "\n";
+
+        buffer += ss.str();
+
+        if (buffer.size() >= 1024 * 1024)
+        {
+            file << buffer;
+            buffer.clear();
+        }
+    }
+
+    if (!buffer.empty())
+    {
+        file << buffer;
+    }
+
+    file.close();
+    return true;
+}
+
+// Run performance measurement for reading, grouping, and writing
+void runPerformanceAnalysisForFile(const string &filename, bool useMedian)
+{
+    cout << "\n---------------------------------------------------\n";
+    cout << "Running performance benchmark on: " << filename << "\n";
+    cout << "---------------------------------------------------\n";
+
+    // --- A. Measure Reading Time ---
+    vector<Student> students;
+    auto startRead = chrono::high_resolution_clock::now();
+
+    // reads student from a file. Inserts values for each student
+    if (!readStudentsFromFile(filename, students))
+    {
+        cerr << "Aborting benchmark for " << filename << " due to read error.\n";
+        return;
+    }
+
+    auto endRead = chrono::high_resolution_clock::now();
+    chrono::duration<double> readTime = endRead - startRead;
+
+    // --- B. Measure Grouping Time ---
+    vector<Student> belowFive;
+    vector<Student> fiveOrAbove;
+
+    auto startGroup = chrono::high_resolution_clock::now();
+
+    separateStudents(students, belowFive, fiveOrAbove, useMedian);
+
+    auto endGroup = chrono::high_resolution_clock::now();
+    chrono::duration<double> groupTime = endGroup - startGroup;
+
+    // --- C. Measure Writing Time ---
+    string outBelow = "students_below_5_" + to_string(students.size()) + ".txt";
+    string outAbove = "students_5_and_above_" + to_string(students.size()) + ".txt";
+
+    auto startWrite = chrono::high_resolution_clock::now();
+
+    bool writeSuccess1 = writeStudentsToFile(outBelow, belowFive, useMedian);
+    bool writeSuccess2 = writeStudentsToFile(outAbove, fiveOrAbove, useMedian);
+
+    auto endWrite = chrono::high_resolution_clock::now();
+    chrono::duration<double> writeTime = endWrite - startWrite;
+
+    if (!writeSuccess1 || !writeSuccess2)
+    {
+        cerr << "Error writing output files during benchmark.\n";
+        return;
+    }
+
+    double totalSec = readTime.count() + groupTime.count() + writeTime.count();
+
+    cout << fixed << setprecision(4);
+    cout << "Dataset: " << students.size() << " students (" << filename << ")\n";
+    cout << "Below 5.0 count:    " << belowFive.size() << "\n";
+    cout << "5.0 & above count:  " << fiveOrAbove.size() << "\n";
+    cout << "---------------------------------------------------\n";
+    cout << "Reading time:      " << readTime.count() << " seconds\n";
+    cout << "Grouping time:     " << groupTime.count() << " seconds\n";
+    cout << "Writing time:      " << writeTime.count() << " seconds\n";
+    cout << "Total time:        " << totalSec << " seconds\n";
+    cout << "---------------------------------------------------\n";
+}
+
+void runAllPerformanceAnalyses()
+{
+    const vector<string> files = {
+        "students_1000.txt",
+        "students_10000.txt",
+        "students_100000.txt",
+        "students_1000000.txt",
+        "students_10000000.txt"};
+
+    cout << "\nChoose grade calculation method for benchmark:\n";
+    cout << "1. Average\n";
+    cout << "2. Median\n";
+    cout << "Enter choice (1-2): ";
+
+    int methodChoice;
+    while (!(cin >> methodChoice) || methodChoice < 1 || methodChoice > 2)
+    {
+        cout << "Invalid choice! Enter 1 or 2: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
+    bool useMedian = (methodChoice == 2);
+
+    for (const auto &file : files)
+    {
+        ifstream check(file);
+        if (!check.is_open())
+        {
+            cout << "\nDataset file '" << file << "' not found. Generating it now...\n";
+            int count = 1000; // default of starting value
+            if (file == "students_1000.txt")
+                count = 1000;
+            else if (file == "students_10000.txt")
+                count = 10000;
+            else if (file == "students_100000.txt")
+                count = 100000;
+            else if (file == "students_1000000.txt")
+                count = 1000000;
+            else if (file == "students_10000000.txt")
+                count = 10000000;
+
+            generateDatasetFile(file, count);
+        }
+        else
+        {
+            check.close();
+        }
+
+        runPerformanceAnalysisForFile(file, useMedian);
+    }
+}
+
+void showMenu()
+{
+    cout << "\n====================================\n";
+    cout << "    STUDENT GRADE SYSTEM (v2)       \n";
+    cout << "====================================\n";
+    cout << "1. Add student manually\n";
+    cout << "2. Generate random students (in memory)\n";
+    cout << "3. Display student results\n";
+    cout << "4. Read student data from file\n";
+    cout << "5. Generate test dataset files (1K - 10M)\n";
+    cout << "6. Run performance benchmark analysis\n";
+    cout << "7. Exit\n";
 }

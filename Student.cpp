@@ -75,7 +75,7 @@ double Student::calculateHomeworkMedian() const
     return calMedian(homework_);
 }
 
-double Student::calculateFinalGrade(bool useMedian = false) const
+double Student::calculateFinalGrade(bool useMedian) const
 {
     // ? - short form of "if else"
     double homeworkScore = useMedian ? calculateHomeworkMedian() : calculateHomeworkAverage();
