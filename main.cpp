@@ -15,12 +15,12 @@ int main()
     do
     {
         showMenu();
-        cout << "Enter your choice (1-7): ";
+        cout << "Enter your choice (1-8): ";
 
         // Validate menu choice input
-        while (!(cin >> choice) || choice < 1 || choice > 7)
+        while (!(cin >> choice) || choice < 1 || choice > 8)
         {
-            cout << "Invalid choice! Please enter a number from 1 to 7: ";
+            cout << "Invalid choice! Please enter a number from 1 to 8: ";
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
@@ -51,14 +51,17 @@ int main()
             generateAllDatasets();
             break;
         case 6:
-            runAllPerformanceAnalyses();
+            runAllContainerBenchmarks();
             break;
         case 7:
+            demonstrateMemoryAddresses();
+            break;
+        case 8:
             cout << "Exiting Student Grade System. Goodbye!\n";
             break;
         }
 
-    } while (choice != 7);
+    } while (choice != 8);
 
     return 0;
 }
