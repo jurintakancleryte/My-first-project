@@ -21,7 +21,7 @@ int getRandomInt(int min, int max)
 }
 
 // Manually add a student from console input
-void addStudentManually(vector<Student>& students)
+void addStudentManually(vector<Student> &students)
 {
     string name, surname;
     double exam;
@@ -73,7 +73,7 @@ void addStudentManually(vector<Student>& students)
 }
 
 // Generate random students in memory
-void generateRandomStudents(vector<Student>& students)
+void generateRandomStudents(vector<Student> &students)
 {
     int numberOfStudents;
     cout << "\nHow many random students do you want to generate? (1-1000): ";
@@ -87,13 +87,11 @@ void generateRandomStudents(vector<Student>& students)
 
     const vector<string> firstNames = {
         "John", "Peter", "Anna", "Mark", "Laura",
-        "Tom", "Emma", "David", "Sarah", "Harsh"
-    };
+        "Tom", "Emma", "David", "Sarah", "Harsh"};
 
     const vector<string> lastNames = {
         "Smith", "Brown", "Johnson", "Wilson", "Taylor",
-        "Anderson", "Thomas", "Jackson", "White", "Harris"
-    };
+        "Anderson", "Thomas", "Jackson", "White", "Harris"};
 
     students.reserve(students.size() + numberOfStudents);
 
@@ -119,7 +117,7 @@ void generateRandomStudents(vector<Student>& students)
 }
 
 // Display student results in formatted table
-void displayStudentResults(vector<Student>& students)
+void displayStudentResults(vector<Student> &students)
 {
     if (students.empty())
     {
@@ -161,7 +159,7 @@ void displayStudentResults(vector<Student>& students)
         cout << "-------------------------------------------\n";
         for (size_t i = 0; i < displayCount; ++i)
         {
-            const auto& s = students[i];
+            const auto &s = students[i];
             cout << left << setw(15) << s.getName()
                  << setw(15) << s.getSurname()
                  << s.calculateFinalGrade(false) << "\n";
@@ -175,7 +173,7 @@ void displayStudentResults(vector<Student>& students)
         cout << "-------------------------------------------\n";
         for (size_t i = 0; i < displayCount; ++i)
         {
-            const auto& s = students[i];
+            const auto &s = students[i];
             cout << left << setw(15) << s.getName()
                  << setw(15) << s.getSurname()
                  << s.calculateFinalGrade(true) << "\n";
@@ -190,7 +188,7 @@ void displayStudentResults(vector<Student>& students)
         cout << "--------------------------------------------------------\n";
         for (size_t i = 0; i < displayCount; ++i)
         {
-            const auto& s = students[i];
+            const auto &s = students[i];
             cout << left << setw(15) << s.getName()
                  << setw(15) << s.getSurname()
                  << setw(15) << s.calculateFinalGrade(false)
@@ -238,12 +236,18 @@ string selectOrEnterFile()
 
         switch (fileChoice)
         {
-        case 1: return "kursiokai.txt";
-        case 2: return "students_1000.txt";
-        case 3: return "students_10000.txt";
-        case 4: return "students_100000.txt";
-        case 5: return "students_1000000.txt";
-        case 6: return "students_10000000.txt";
+        case 1:
+            return "kursiokai.txt";
+        case 2:
+            return "students_1000.txt";
+        case 3:
+            return "students_10000.txt";
+        case 4:
+            return "students_100000.txt";
+        case 5:
+            return "students_1000000.txt";
+        case 6:
+            return "students_10000000.txt";
         }
     }
     else
@@ -258,7 +262,7 @@ string selectOrEnterFile()
 }
 
 // Read student records from a file
-bool readStudentsFromFile(const string& filename, vector<Student>& students)
+bool readStudentsFromFile(const string &filename, vector<Student> &students)
 {
     ifstream file(filename);
 
@@ -314,7 +318,7 @@ bool readStudentsFromFile(const string& filename, vector<Student>& students)
 }
 
 // Generate a large dataset file of students
-void generateDatasetFile(const string& filename, int studentCount, int homeworkCount)
+void generateDatasetFile(const string &filename, int studentCount, int homeworkCount)
 {
     cout << "\nGenerating file '" << filename << "' with " << studentCount << " students...\n";
 
@@ -431,9 +435,9 @@ void generateAllDatasets()
 // Separate students into two groups based on final grade threshold (5.0):
 // belowFive: Final < 5.0
 // fiveOrAbove: Final >= 5.0
-void separateStudents(const vector<Student>& allStudents,
-                      vector<Student>& belowFive,
-                      vector<Student>& fiveOrAbove,
+void separateStudents(const vector<Student> &allStudents,
+                      vector<Student> &belowFive,
+                      vector<Student> &fiveOrAbove,
                       bool useMedian)
 {
     belowFive.clear();
@@ -442,7 +446,7 @@ void separateStudents(const vector<Student>& allStudents,
     belowFive.reserve(allStudents.size() / 2);
     fiveOrAbove.reserve(allStudents.size() / 2);
 
-    for (const auto& student : allStudents)
+    for (const auto &student : allStudents)
     {
         double finalGrade = student.calculateFinalGrade(useMedian);
         if (finalGrade < 5.0)
@@ -454,11 +458,23 @@ void separateStudents(const vector<Student>& allStudents,
             fiveOrAbove.push_back(student);
         }
     }
+
+    sort(belowFive.begin(), belowFive.end(),
+         [useMedian](const Student &a, const Student &b)
+         {
+             return a.calculateFinalGrade(useMedian) < b.calculateFinalGrade(useMedian);
+         });
+
+    sort(fiveOrAbove.begin(), fiveOrAbove.end(),
+         [useMedian](const Student &a, const Student &b)
+         {
+             return a.calculateFinalGrade(useMedian) < b.calculateFinalGrade(useMedian);
+         });
 }
 
 // Write student list and final grades to file
-bool writeStudentsToFile(const string& filename,
-                         const vector<Student>& students,
+bool writeStudentsToFile(const string &filename,
+                         const vector<Student> &students,
                          bool useMedian)
 {
     ofstream file(filename);
@@ -477,7 +493,7 @@ bool writeStudentsToFile(const string& filename,
     string buffer;
     buffer.reserve(1024 * 1024);
 
-    for (const auto& s : students)
+    for (const auto &s : students)
     {
         stringstream ss;
         ss << left << setw(20) << s.getName()
@@ -503,7 +519,7 @@ bool writeStudentsToFile(const string& filename,
 }
 
 // Read student records from a file into a list of Student objects
-bool readStudentsFromFileList(const string& filename, list<Student>& students)
+bool readStudentsFromFileList(const string &filename, list<Student> &students)
 {
     ifstream file(filename);
 
@@ -556,7 +572,7 @@ bool readStudentsFromFileList(const string& filename, list<Student>& students)
 }
 
 // Display student results for a list container formatted in a console table
-void displayStudentResultsList(list<Student>& students)
+void displayStudentResultsList(list<Student> &students)
 {
     if (students.empty())
     {
@@ -635,15 +651,15 @@ void displayStudentResultsList(list<Student>& students)
 }
 
 // Separate list of students into belowFive and fiveOrAbove
-void separateStudentsList(const list<Student>& allStudents,
-                          list<Student>& belowFive,
-                          list<Student>& fiveOrAbove,
+void separateStudentsList(const list<Student> &allStudents,
+                          list<Student> &belowFive,
+                          list<Student> &fiveOrAbove,
                           bool useMedian)
 {
     belowFive.clear();
     fiveOrAbove.clear();
 
-    for (const auto& student : allStudents)
+    for (const auto &student : allStudents)
     {
         double finalGrade = student.calculateFinalGrade(useMedian);
         if (finalGrade < 5.0)
@@ -655,11 +671,18 @@ void separateStudentsList(const list<Student>& allStudents,
             fiveOrAbove.push_back(student);
         }
     }
+
+    belowFive.sort([useMedian](const Student &a, const Student &b)
+                   { return a.calculateFinalGrade(useMedian) < b.calculateFinalGrade(useMedian); });
+
+    // Sort the 5-and-above group by final grade in ascending order
+    fiveOrAbove.sort([useMedian](const Student &a, const Student &b)
+                     { return a.calculateFinalGrade(useMedian) < b.calculateFinalGrade(useMedian); });
 }
 
 // Write list of students to output file
-bool writeStudentsToFileList(const string& filename,
-                             const list<Student>& students,
+bool writeStudentsToFileList(const string &filename,
+                             const list<Student> &students,
                              bool useMedian)
 {
     ofstream file(filename);
@@ -677,7 +700,7 @@ bool writeStudentsToFileList(const string& filename,
     string buffer;
     buffer.reserve(1024 * 1024);
 
-    for (const auto& s : students)
+    for (const auto &s : students)
     {
         stringstream ss;
         ss << left << setw(20) << s.getName()
@@ -737,22 +760,22 @@ void demonstrateMemoryAddresses()
         cout << "std::vector capacity: " << studentVector.capacity()
              << " | size: " << studentVector.size() << "\n";
 
-             //printing memory of address of vector
+        // printing memory of address of vector
         cout << "\nstd::vector student object memory addresses:\n";
         for (size_t i = 0; i < studentVector.size(); ++i)
         {
             cout << "  Vector Element #" << (i + 1) << " Address: "
-                 << static_cast<const void*>(&studentVector[i]) << "\n";
-                 //data type that convert the adress to pointer type so that cout that
+                 << static_cast<const void *>(&studentVector[i]) << "\n";
+            // data type that convert the adress to pointer type so that cout that
         }
 
-            //printing memory of address of vector
+        // printing memory of address of vector
         cout << "\nstd::list student object memory addresses:\n";
-        size_t listIdx = 1; //for cout
-        for (const auto& studentNode : studentList)
+        size_t listIdx = 1; // for cout
+        for (const auto &studentNode : studentList)
         {
             cout << "  List Element #" << listIdx++ << " Address:   "
-                 << static_cast<const void*>(&studentNode) << "\n";
+                 << static_cast<const void *>(&studentNode) << "\n";
         }
 
         cout << "\nDo you want to add another student to observe address changes? (y/n): ";
@@ -764,8 +787,8 @@ void demonstrateMemoryAddresses()
 }
 
 // Benchmark comparison for a single dataset file across std::vector and std::list (5 repetitions)
-void runContainerBenchmarkForFile(const string& filename, bool useMedian, int repetitions)
-                //benchmark - comparing vector and list
+void runContainerBenchmarkForFile(const string &filename, bool useMedian, int repetitions)
+// benchmark - comparing vector and list
 {
     cout << "\n===================================================\n";
     cout << "Benchmarking File: " << filename << " (" << repetitions << " repetitions)\n";
@@ -886,8 +909,7 @@ void runAllContainerBenchmarks()
         "students_10000.txt",
         "students_100000.txt",
         "students_1000000.txt",
-        "students_10000000.txt"
-    };
+        "students_10000000.txt"};
 
     cout << "\nChoose grade calculation method for benchmark:\n";
     cout << "1. Average\n";
@@ -904,18 +926,23 @@ void runAllContainerBenchmarks()
 
     bool useMedian = (methodChoice == 2);
 
-    for (const auto& file : files) 
+    for (const auto &file : files)
     {
         ifstream check(file);
         if (!check.is_open())
         {
             cout << "\nDataset file '" << file << "' not found. Generating it now...\n";
             int count = 1000;
-            if (file == "students_1000.txt") count = 1000;
-            else if (file == "students_10000.txt") count = 10000;
-            else if (file == "students_100000.txt") count = 100000;
-            else if (file == "students_1000000.txt") count = 1000000;
-            else if (file == "students_10000000.txt") count = 10000000;
+            if (file == "students_1000.txt")
+                count = 1000;
+            else if (file == "students_10000.txt")
+                count = 10000;
+            else if (file == "students_100000.txt")
+                count = 100000;
+            else if (file == "students_1000000.txt")
+                count = 1000000;
+            else if (file == "students_10000000.txt")
+                count = 10000000;
 
             generateDatasetFile(file, count);
         }
