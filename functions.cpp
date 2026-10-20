@@ -9,6 +9,7 @@
 #include <limits>
 #include <algorithm>
 #include <chrono>
+#include <bits/stdc++.h>
 
 using namespace std;
 
@@ -432,14 +433,12 @@ void generateAllDatasets()
     }
 }
 
-// Separate students into two groups based on final grade threshold (5.0):
-// belowFive: Final < 5.0
-// fiveOrAbove: Final >= 5.0
-void separateStudents(const vector<Student> &allStudents,
-                      vector<Student> &belowFive,
-                      vector<Student> &fiveOrAbove,
-                      bool useMedian)
+void separateStudentsStrategy1(const vector<Student> &allStudents,
+                               vector<Student> &belowFive,
+                               vector<Student> &fiveOrAbove,
+                               bool useMedian = false)
 {
+
     belowFive.clear();
     fiveOrAbove.clear();
 
@@ -470,6 +469,17 @@ void separateStudents(const vector<Student> &allStudents,
          {
              return a.calculateFinalGrade(useMedian) < b.calculateFinalGrade(useMedian);
          });
+}
+
+// Separate students into two groups based on final grade threshold (5.0):
+// belowFive: Final < 5.0
+// fiveOrAbove: Final >= 5.0
+void separateStudents(const vector<Student> &allStudents,
+                      vector<Student> &belowFive,
+                      vector<Student> &fiveOrAbove,
+                      bool useMedian)
+{
+    separateStudentsStrategy1(allStudents, belowFive, fiveOrAbove, useMedian);
 }
 
 // Write student list and final grades to file
@@ -650,11 +660,10 @@ void displayStudentResultsList(list<Student> &students)
     }
 }
 
-// Separate list of students into belowFive and fiveOrAbove
 void separateStudentsList(const list<Student> &allStudents,
                           list<Student> &belowFive,
                           list<Student> &fiveOrAbove,
-                          bool useMedian)
+                          bool useMedian = false)
 {
     belowFive.clear();
     fiveOrAbove.clear();
@@ -672,12 +681,76 @@ void separateStudentsList(const list<Student> &allStudents,
         }
     }
 
+    // all srudents.clear(); enter below5.scirnk_to_fit; ir tas pats su five_or_above
+
     belowFive.sort([useMedian](const Student &a, const Student &b)
                    { return a.calculateFinalGrade(useMedian) < b.calculateFinalGrade(useMedian); });
 
     // Sort the 5-and-above group by final grade in ascending order
     fiveOrAbove.sort([useMedian](const Student &a, const Student &b)
                      { return a.calculateFinalGrade(useMedian) < b.calculateFinalGrade(useMedian); });
+}
+
+void separateStudentsStrategy2(vector<Student> &allStudents,
+                               vector<Student> &belowFive,
+                               bool useMedian = false)
+{
+    belowFive.clear();
+
+    belowFive.reserve(allStudents.size() / 2); // good for time complexity
+
+    auto it = allStudents.begin();
+    while (it != allStudents.end())
+    {
+        if (it->calculateFinalGrade(useMedian) < 5.0)
+        {
+            belowFive.push_back(std::move(*it));
+            // function that is use of move
+            it = allStudents.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
+void separateStudentsStrategy3(vector<Student> &allStudents,
+                               vector<Student> &belowFive,
+                               bool useMedian = false)
+{
+    
+}
+
+// Separate list of students into belowFive and fiveOrAbove
+void separateStudentsList(const list<Student> &allStudents,
+                          list<Student> &belowFive,
+                          list<Student> &fiveOrAbove,
+                          bool useMedian)
+{
+    separateStudentsListStrategy1(allStudents, belowFive, fiveOrAbove, useMedian);
+}
+
+void separateStudentsListStrategy2(list<Student> &allStudents,
+                                   list<Student> &belowFive,
+                                   bool useMedian = false)
+{
+    belowFive.clear();
+
+    auto it = allStudents.begin();
+    while (it != allStudents.end())
+    {
+        if (it->calculateFinalGrade(useMedian) < 5.0)
+        {
+            belowFive.push_back(std::move(*it));
+            // function that is use of move
+            it = allStudents.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 // Write list of students to output file

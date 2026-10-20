@@ -32,9 +32,35 @@ void separateStudents(const vector<Student> &allStudents,
                       vector<Student> &fiveOrAbove,
                       bool useMedian = false);
 
+void separateStudentsStrategy1(const vector<Student> &allStudents,
+                      vector<Student> &belowFive,
+                      vector<Student> &fiveOrAbove,
+                      bool useMedian = false);
+
+void separateStudentsStrategy2(vector<Student> &allStudents,
+                      vector<Student> &belowFive,
+                      bool useMedian = false);
+
+void separateStudentsStrategy3(vector<Student> &allStudents,
+                      vector<Student> &belowFive,
+                      bool useMedian = false);
+
 void separateStudentsList(const list<Student> &allStudents,
                       list<Student> &belowFive,
                       list<Student> &fiveOrAbove,
+                      bool useMedian = false);
+
+void separateStudentsListStrategy1(const list<Student> &allStudents,
+                      list<Student> &belowFive,
+                      list<Student> &fiveOrAbove,
+                      bool useMedian = false);
+
+void separateStudentsListStrategy2(list<Student> &allStudents,
+                      list<Student> &belowFive,
+                      bool useMedian = false);
+
+void separateStudentsListStrategy3(list<Student> &allStudents,
+                      list<Student> &belowFive,
                       bool useMedian = false);
 
 bool writeStudentsToFile(const string &filename,
@@ -50,8 +76,6 @@ void demonstrateMemoryAddresses();
 void runContainerBenchmarkForFile(const string& filename, bool useMedian = false, int repetitions = 5);
 
 void runAllContainerBenchmarks();
-
-//void runAllPerformanceAnalyses();
 
 void showMenu();
 
