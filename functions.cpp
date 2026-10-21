@@ -719,7 +719,16 @@ void separateStudentsStrategy3(vector<Student> &allStudents,
                                vector<Student> &belowFive,
                                bool useMedian = false)
 {
-    
+    belowFive.clear();
+
+    auto pointerToPoorStudents = std::stable_partition(allStudents.begin(), allStudents.end(),
+                                                       [useMedian](const Student &s)
+                                                       {
+                                                           return s.calculateFinalGrade(useMedian) >= 5.0;
+                                                       });
+    belowFive.assign(make_move_iterator(pointerToPoorStudents),
+                     make_move_iterator(allStudents.end()));
+    allStudents.erase(pointerToPoorStudents, allStudents.end());
 }
 
 // Separate list of students into belowFive and fiveOrAbove
@@ -751,6 +760,21 @@ void separateStudentsListStrategy2(list<Student> &allStudents,
             ++it;
         }
     }
+}
+
+void separateStudentsListStrategy3(list<Student> &allStudents,
+                                   list<Student> &belowFive,
+                                   bool useMedian = false)
+{
+    belowFive.clear();
+
+    auto pointerToPoorStudents = std::stable_partition(allStudents.begin(), allStudents.end(),
+                                                       [useMedian](const Student &s)
+                                                       {
+                                                           return s.calculateFinalGrade(useMedian) >= 5.0;
+                                                       });
+    belowFive.splice(belowFive.begin(), allStudents, pointerToPoorStudents, allStudents.end());
+            //directly moving data to the list, not copying it
 }
 
 // Write list of students to output file
