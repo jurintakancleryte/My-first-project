@@ -774,7 +774,7 @@ void separateStudentsListStrategy3(list<Student> &allStudents,
                                                            return s.calculateFinalGrade(useMedian) >= 5.0;
                                                        });
     belowFive.splice(belowFive.begin(), allStudents, pointerToPoorStudents, allStudents.end());
-            //directly moving data to the list, not copying it
+    // directly moving data to the list, not copying it
 }
 
 // Write list of students to output file
@@ -884,17 +884,15 @@ void demonstrateMemoryAddresses()
 }
 
 // Benchmark comparison for a single dataset file across std::vector and std::list (5 repetitions)
-void runContainerBenchmarkForFile(const string &filename, bool useMedian, int repetitions)
-// benchmark - comparing vector and list
+void runBenchmarkForFile(const string &filename, bool useMedian, int repetitions)
 {
-    cout << "\n===================================================\n";
+    cout << "\n===========================================================\n";
     cout << "Benchmarking File: " << filename << " (" << repetitions << " repetitions)\n";
-    cout << "===================================================\n";
+    cout << "===========================================================\n";
 
     vector<Student> vectorStudents;
     list<Student> listStudents;
 
-    // Load data from file for vector and list
     if (!readStudentsFromFile(filename, vectorStudents))
     {
         cerr << "Failed to read file " << filename << " into std::vector.\n";
@@ -908,94 +906,157 @@ void runContainerBenchmarkForFile(const string &filename, bool useMedian, int re
 
     size_t studentCount = vectorStudents.size();
     string sizeStr = to_string(studentCount);
+                //if integer it changes the data stype of a string
 
-    double totalVectorGroupSec = 0.0;
-    double totalVectorWriteSec = 0.0;
-    double totalListGroupSec = 0.0;
-    double totalListWriteSec = 0.0;
+    double totalV1_sep = 0.0, totalV2_sep = 0.0, totalV3_sep = 0.0;
+    double totalL1_sep = 0.0, totalL2_sep = 0.0, totalL3_sep = 0.0;
+    double totalVecWrite = 0.0, totalListWrite = 0.0;
+
+    // Vector Strategy 2 is O(N^2) due to shifting elements on every erase.
+    // For 1M or 10M records, it would take multiple hours, so it is skipped for N > 100,000.
+    bool skipV2 = (studentCount > 100000);
 
     string vecOutBelow = "students_below_5_vector_" + sizeStr + ".txt";
     string vecOutAbove = "students_5_and_above_vector_" + sizeStr + ".txt";
-
     string listOutBelow = "students_below_5_list_" + sizeStr + ".txt";
     string listOutAbove = "students_5_and_above_list_" + sizeStr + ".txt";
 
-    // --- Benchmark std::vector ---
-    cout << "\nTesting std::vector (" << studentCount << " students, " << repetitions << " runs)..." << endl;
     for (int r = 1; r <= repetitions; ++r)
     {
-        vector<Student> belowFive;
-        vector<Student> fiveOrAbove;
+        cout << "  Run #" << r << " of " << repetitions << "..." << endl;
 
-        // Grouping Time
-        auto startGroup = chrono::high_resolution_clock::now();
-        separateStudents(vectorStudents, belowFive, fiveOrAbove, useMedian);
-        auto endGroup = chrono::high_resolution_clock::now();
+        // 1. Vector Strategy 1 (2 new containers)
+        vector<Student> v1_poor, v1_good;
+        auto startV1 = chrono::high_resolution_clock::now();
+        separateStudentsStrategy1(vectorStudents, v1_poor, v1_good, useMedian);
+        auto endV1 = chrono::high_resolution_clock::now();
+        totalV1_sep += chrono::duration<double>(endV1 - startV1).count();
 
-        chrono::duration<double> groupDur = endGroup - startGroup;
-        totalVectorGroupSec += groupDur.count();
+        // 2. Vector Strategy 2 (Move poor & erase from original)
+        if (!skipV2)
+        {
+            vector<Student> v2_copy = vectorStudents;
+            vector<Student> v2_poor;
+            auto startV2 = chrono::high_resolution_clock::now();
+            separateStudentsStrategy2(v2_copy, v2_poor, useMedian);
+            auto endV2 = chrono::high_resolution_clock::now();
+            totalV2_sep += chrono::duration<double>(endV2 - startV2).count();
+        }
 
-        // Writing Time
-        auto startWrite = chrono::high_resolution_clock::now();
-        writeStudentsToFile(vecOutBelow, belowFive, useMedian);
-        writeStudentsToFile(vecOutAbove, fiveOrAbove, useMedian);
-        auto endWrite = chrono::high_resolution_clock::now();
+        // 3. Vector Strategy 3 (Optimized with std::stable_partition)
+        {
+            vector<Student> v3_copy = vectorStudents;
+            vector<Student> v3_poor;
+            auto startV3 = chrono::high_resolution_clock::now();
+            separateStudentsStrategy3(v3_copy, v3_poor, useMedian);
+            auto endV3 = chrono::high_resolution_clock::now();
+            totalV3_sep += chrono::duration<double>(endV3 - startV3).count();
+        }
 
-        chrono::duration<double> writeDur = endWrite - startWrite;
-        totalVectorWriteSec += writeDur.count();
+        // Vector File Writing
+        auto startVWrite = chrono::high_resolution_clock::now();
+        writeStudentsToFile(vecOutBelow, v1_poor, useMedian);
+        writeStudentsToFile(vecOutAbove, v1_good, useMedian);
+        auto endVWrite = chrono::high_resolution_clock::now();
+        totalVecWrite += chrono::duration<double>(endVWrite - startVWrite).count();
 
-        cout << "  Run #" << r << " -> Grouping: " << fixed << setprecision(4) << groupDur.count()
-             << " s | Writing: " << writeDur.count() << " s\n";
+        // 4. List Strategy 1 (2 new containers)
+        list<Student> l1_poor, l1_good;
+        auto startL1 = chrono::high_resolution_clock::now();
+        separateStudentsListStrategy1(listStudents, l1_poor, l1_good, useMedian);
+        auto endL1 = chrono::high_resolution_clock::now();
+        totalL1_sep += chrono::duration<double>(endL1 - startL1).count();
+
+        // 5. List Strategy 2 (Move poor & erase from original)
+        {
+            list<Student> l2_copy = listStudents;
+            list<Student> l2_poor;
+            auto startL2 = chrono::high_resolution_clock::now();
+            separateStudentsListStrategy2(l2_copy, l2_poor, useMedian);
+            auto endL2 = chrono::high_resolution_clock::now();
+            totalL2_sep += chrono::duration<double>(endL2 - startL2).count();
+        }
+
+        // 6. List Strategy 3 (Optimized with std::stable_partition + splice)
+        {
+            list<Student> l3_copy = listStudents;
+            list<Student> l3_poor;
+            auto startL3 = chrono::high_resolution_clock::now();
+            separateStudentsListStrategy3(l3_copy, l3_poor, useMedian);
+            auto endL3 = chrono::high_resolution_clock::now();
+            totalL3_sep += chrono::duration<double>(endL3 - startL3).count();
+        }
+
+        // List File Writing
+        auto startLWrite = chrono::high_resolution_clock::now();
+        writeStudentsToFileList(listOutBelow, l1_poor, useMedian);
+        writeStudentsToFileList(listOutAbove, l1_good, useMedian);
+        auto endLWrite = chrono::high_resolution_clock::now();
+        totalListWrite += chrono::duration<double>(endLWrite - startLWrite).count();
     }
 
-    double avgVectorGroupSec = totalVectorGroupSec / repetitions;
-    double avgVectorWriteSec = totalVectorWriteSec / repetitions;
+    double avgV1_sep = totalV1_sep / repetitions;
+    double avgV2_sep = totalV2_sep / repetitions;
+    double avgV3_sep = totalV3_sep / repetitions;
+    double avgVecWrite = totalVecWrite / repetitions;
 
-    // --- Benchmark std::list ---
-    cout << "\nTesting std::list (" << studentCount << " students, " << repetitions << " runs)..." << endl;
-    for (int r = 1; r <= repetitions; ++r)
+    double avgL1_sep = totalL1_sep / repetitions;
+    double avgL2_sep = totalL2_sep / repetitions;
+    double avgL3_sep = totalL3_sep / repetitions;
+    double avgListWrite = totalListWrite / repetitions;
+
+    // Print Benchmark Summary Table
+    cout << fixed << setprecision(5);
+    cout << "\n-------------------------------------------------------------------------------------------------\n";
+    cout << "STRATEGY BENCHMARK SUMMARY FOR: " << studentCount << " students (" << repetitions << "-run averages)\n";
+    cout << "-------------------------------------------------------------------------------------------------\n";
+    cout << left << setw(44) << "Strategy & Container"
+         << setw(20) << "Avg Separation (s)"
+         << setw(20) << "Avg Writing (s)"
+         << "Total Time (s)\n";
+    cout << "-------------------------------------------------------------------------------------------------\n";
+
+    cout << left << setw(44) << "vector: Strategy 1 (2 new containers)"
+         << setw(20) << avgV1_sep
+         << setw(20) << avgVecWrite
+         << (avgV1_sep + avgVecWrite) << "\n";
+
+    if (skipV2)
     {
-        list<Student> belowFive;
-        list<Student> fiveOrAbove;
-
-        // Grouping Time
-        auto startGroup = chrono::high_resolution_clock::now();
-        separateStudentsList(listStudents, belowFive, fiveOrAbove, useMedian);
-        auto endGroup = chrono::high_resolution_clock::now();
-
-        chrono::duration<double> groupDur = endGroup - startGroup;
-        totalListGroupSec += groupDur.count();
-
-        // Writing Time
-        auto startWrite = chrono::high_resolution_clock::now();
-        writeStudentsToFileList(listOutBelow, belowFive, useMedian);
-        writeStudentsToFileList(listOutAbove, fiveOrAbove, useMedian);
-        auto endWrite = chrono::high_resolution_clock::now();
-
-        chrono::duration<double> writeDur = endWrite - startWrite;
-        totalListWriteSec += writeDur.count();
-
-        cout << "  Run #" << r << " -> Grouping: " << fixed << setprecision(4) << groupDur.count()
-             << " s | Writing: " << writeDur.count() << " s\n";
+        cout << left << setw(44) << "vector: Strategy 2 (erase from original)"
+             << setw(20) << "SKIPPED (O(N^2))"
+             << setw(20) << "SKIPPED"
+             << "SKIPPED\n";
+    }
+    else
+    {
+        cout << left << setw(44) << "vector: Strategy 2 (erase from original)"
+             << setw(20) << avgV2_sep
+             << setw(20) << avgVecWrite
+             << (avgV2_sep + avgVecWrite) << "\n";
     }
 
-    double avgListGroupSec = totalListGroupSec / repetitions;
-    double avgListWriteSec = totalListWriteSec / repetitions;
+    cout << left << setw(44) << "vector: Strategy 3 (std::stable_partition)"
+         << setw(20) << avgV3_sep
+         << setw(20) << avgVecWrite
+         << (avgV3_sep + avgVecWrite) << "\n";
 
-    cout << "\n---------------------------------------------------\n";
-    cout << "AVERAGE RESULTS SUMMARY (" << studentCount << " students):\n";
-    cout << "---------------------------------------------------\n";
-    cout << left << setw(15) << "Container"
-         << setw(25) << "Avg Grouping Time (s)"
-         << setw(25) << "Avg Writing Time (s)" << "\n";
-    cout << "---------------------------------------------------\n";
-    cout << left << setw(15) << "std::vector"
-         << setw(25) << fixed << setprecision(4) << avgVectorGroupSec
-         << setw(25) << avgVectorWriteSec << "\n";
-    cout << left << setw(15) << "std::list"
-         << setw(25) << avgListGroupSec
-         << setw(25) << avgListWriteSec << "\n";
-    cout << "---------------------------------------------------\n";
+    cout << left << setw(44) << "list:   Strategy 1 (2 new containers)"
+         << setw(20) << avgL1_sep
+         << setw(20) << avgListWrite
+         << (avgL1_sep + avgListWrite) << "\n";
+
+    cout << left << setw(44) << "list:   Strategy 2 (erase from original)"
+         << setw(20) << avgL2_sep
+         << setw(20) << avgListWrite
+         << (avgL2_sep + avgListWrite) << "\n";
+
+    cout << left << setw(44) << "list:   Strategy 3 (std::stable_partition + splice)"
+         << setw(20) << avgL3_sep
+         << setw(20) << avgListWrite
+         << (avgL3_sep + avgListWrite) << "\n";
+
+    cout << "-------------------------------------------------------------------------------------------------\n";
 }
 
 // Run container benchmark comparisons across all 5 dataset files
@@ -1048,7 +1109,7 @@ void runAllContainerBenchmarks()
             check.close();
         }
 
-        runContainerBenchmarkForFile(file, useMedian, 5);
+        runBenchmarkForFile(file, useMedian, 5);
     }
 }
 

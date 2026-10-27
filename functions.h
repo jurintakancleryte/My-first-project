@@ -73,7 +73,7 @@ bool writeStudentsToFileList(const string &filename,
 
 void demonstrateMemoryAddresses();
 
-void runContainerBenchmarkForFile(const string& filename, bool useMedian = false, int repetitions = 5);
+void runBenchmarkForFile(const string& filename, bool useMedian = false, int repetitions = 5);
 
 void runAllContainerBenchmarks();
 
