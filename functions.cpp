@@ -300,6 +300,21 @@ bool readStudentsFromFile(const string &filename, vector<Student> &students)
         return false;
     }
 
+    // Pre-reserve vector capacity if student count is in filename
+    size_t underscorePos = filename.rfind('_');
+    size_t dotPos = filename.rfind('.');
+    if (underscorePos != string::npos && dotPos != string::npos && dotPos > underscorePos)
+    {
+        try
+        {
+            size_t expectedCount = stoul(filename.substr(underscorePos + 1, dotPos - underscorePos - 1));
+            students.reserve(expectedCount);
+        }
+        catch (...)
+        {
+        }
+    }
+
     // Read students from file using Student class stream reader
     Student tempStudent;
     while (tempStudent.readFromStream(file, homeworkCount))
@@ -436,14 +451,11 @@ void generateAllDatasets()
 void separateStudentsStrategy1(const vector<Student> &allStudents,
                                vector<Student> &belowFive,
                                vector<Student> &fiveOrAbove,
-                               bool useMedian = false)
+                               bool useMedian)
 {
 
     belowFive.clear();
     fiveOrAbove.clear();
-
-    belowFive.reserve(allStudents.size() / 2);
-    fiveOrAbove.reserve(allStudents.size() / 2);
 
     for (const auto &student : allStudents)
     {
@@ -503,14 +515,16 @@ bool writeStudentsToFile(const string &filename,
     string buffer;
     buffer.reserve(1024 * 1024);
 
+    char lineBuf[128];
+
     for (const auto &s : students)
     {
-        stringstream ss;
-        ss << left << setw(20) << s.getName()
-           << setw(20) << s.getSurname()
-           << fixed << setprecision(2) << s.calculateFinalGrade(useMedian) << "\n";
-
-        buffer += ss.str();
+        int len = snprintf(lineBuf, sizeof(lineBuf), "%-20s%-20s%.2f\n",
+                           s.getName().c_str(), s.getSurname().c_str(), s.calculateFinalGrade(useMedian));
+        if (len > 0)
+        {
+            buffer.append(lineBuf, len);
+        }
 
         if (buffer.size() >= 1024 * 1024)
         {
@@ -660,44 +674,11 @@ void displayStudentResultsList(list<Student> &students)
     }
 }
 
-void separateStudentsList(const list<Student> &allStudents,
-                          list<Student> &belowFive,
-                          list<Student> &fiveOrAbove,
-                          bool useMedian = false)
-{
-    belowFive.clear();
-    fiveOrAbove.clear();
-
-    for (const auto &student : allStudents)
-    {
-        double finalGrade = student.calculateFinalGrade(useMedian);
-        if (finalGrade < 5.0)
-        {
-            belowFive.push_back(student);
-        }
-        else
-        {
-            fiveOrAbove.push_back(student);
-        }
-    }
-
-    // all srudents.clear(); enter below5.scirnk_to_fit; ir tas pats su five_or_above
-
-    belowFive.sort([useMedian](const Student &a, const Student &b)
-                   { return a.calculateFinalGrade(useMedian) < b.calculateFinalGrade(useMedian); });
-
-    // Sort the 5-and-above group by final grade in ascending order
-    fiveOrAbove.sort([useMedian](const Student &a, const Student &b)
-                     { return a.calculateFinalGrade(useMedian) < b.calculateFinalGrade(useMedian); });
-}
-
 void separateStudentsStrategy2(vector<Student> &allStudents,
                                vector<Student> &belowFive,
-                               bool useMedian = false)
+                               bool useMedian)
 {
     belowFive.clear();
-
-    belowFive.reserve(allStudents.size() / 2); // good for time complexity
 
     auto it = allStudents.begin();
     while (it != allStudents.end())
@@ -717,7 +698,7 @@ void separateStudentsStrategy2(vector<Student> &allStudents,
 
 void separateStudentsStrategy3(vector<Student> &allStudents,
                                vector<Student> &belowFive,
-                               bool useMedian = false)
+                               bool useMedian)
 {
     belowFive.clear();
 
@@ -731,6 +712,28 @@ void separateStudentsStrategy3(vector<Student> &allStudents,
     allStudents.erase(pointerToPoorStudents, allStudents.end());
 }
 
+void separateStudentsListStrategy1(const list<Student> &allStudents,
+                                   list<Student> &belowFive,
+                                   list<Student> &fiveOrAbove,
+                                   bool useMedian)
+{
+    belowFive.clear();
+    fiveOrAbove.clear();
+
+    for (const auto &student : allStudents)
+    {
+        double finalGrade = student.calculateFinalGrade(useMedian);
+        if (finalGrade < 5.0)
+        {
+            belowFive.push_back(student);
+        }
+        else
+        {
+            fiveOrAbove.push_back(student);
+        }
+    }
+}
+
 // Separate list of students into belowFive and fiveOrAbove
 void separateStudentsList(const list<Student> &allStudents,
                           list<Student> &belowFive,
@@ -742,7 +745,7 @@ void separateStudentsList(const list<Student> &allStudents,
 
 void separateStudentsListStrategy2(list<Student> &allStudents,
                                    list<Student> &belowFive,
-                                   bool useMedian = false)
+                                   bool useMedian)
 {
     belowFive.clear();
 
@@ -764,7 +767,7 @@ void separateStudentsListStrategy2(list<Student> &allStudents,
 
 void separateStudentsListStrategy3(list<Student> &allStudents,
                                    list<Student> &belowFive,
-                                   bool useMedian = false)
+                                   bool useMedian)
 {
     belowFive.clear();
 
@@ -796,15 +799,16 @@ bool writeStudentsToFileList(const string &filename,
 
     string buffer;
     buffer.reserve(1024 * 1024);
+    char lineBuf[128];
 
     for (const auto &s : students)
     {
-        stringstream ss;
-        ss << left << setw(20) << s.getName()
-           << setw(20) << s.getSurname()
-           << fixed << setprecision(2) << s.calculateFinalGrade(useMedian) << "\n";
-
-        buffer += ss.str();
+        int len = snprintf(lineBuf, sizeof(lineBuf), "%-20s%-20s%.2f\n",
+                           s.getName().c_str(), s.getSurname().c_str(), s.calculateFinalGrade(useMedian));
+        if (len > 0)
+        {
+            buffer.append(lineBuf, len);
+        }
 
         if (buffer.size() >= 1024 * 1024)
         {
@@ -890,120 +894,161 @@ void runBenchmarkForFile(const string &filename, bool useMedian, int repetitions
     cout << "Benchmarking File: " << filename << " (" << repetitions << " repetitions)\n";
     cout << "===========================================================\n";
 
-    vector<Student> vectorStudents;
-    list<Student> listStudents;
-
-    if (!readStudentsFromFile(filename, vectorStudents))
-    {
-        cerr << "Failed to read file " << filename << " into std::vector.\n";
-        return;
-    }
-    if (!readStudentsFromFileList(filename, listStudents))
-    {
-        cerr << "Failed to read file " << filename << " into std::list.\n";
-        return;
-    }
-
-    size_t studentCount = vectorStudents.size();
-    string sizeStr = to_string(studentCount);
-                //if integer it changes the data stype of a string
-
     double totalV1_sep = 0.0, totalV2_sep = 0.0, totalV3_sep = 0.0;
     double totalL1_sep = 0.0, totalL2_sep = 0.0, totalL3_sep = 0.0;
-    double totalVecWrite = 0.0, totalListWrite = 0.0;
+    double avgVecWrite = 0.0, avgListWrite = 0.0;
+    size_t studentCount = 0;
+    string sizeStr = "";
+    bool skipV2 = false;
 
-    // Vector Strategy 2 is O(N^2) due to shifting elements on every erase.
-    // For 1M or 10M records, it would take multiple hours, so it is skipped for N > 100,000.
-    bool skipV2 = (studentCount > 100000);
-
-    string vecOutBelow = "students_below_5_vector_" + sizeStr + ".txt";
-    string vecOutAbove = "students_5_and_above_vector_" + sizeStr + ".txt";
-    string listOutBelow = "students_below_5_list_" + sizeStr + ".txt";
-    string listOutAbove = "students_5_and_above_list_" + sizeStr + ".txt";
-
-    for (int r = 1; r <= repetitions; ++r)
+    // --- Part 1: Benchmark std::vector (list is NOT kept in memory) ---
+    try
     {
-        cout << "  Run #" << r << " of " << repetitions << "..." << endl;
-
-        // 1. Vector Strategy 1 (2 new containers)
-        vector<Student> v1_poor, v1_good;
-        auto startV1 = chrono::high_resolution_clock::now();
-        separateStudentsStrategy1(vectorStudents, v1_poor, v1_good, useMedian);
-        auto endV1 = chrono::high_resolution_clock::now();
-        totalV1_sep += chrono::duration<double>(endV1 - startV1).count();
-
-        // 2. Vector Strategy 2 (Move poor & erase from original)
-        if (!skipV2)
+        vector<Student> vectorStudents;
+        if (!readStudentsFromFile(filename, vectorStudents))
         {
-            vector<Student> v2_copy = vectorStudents;
-            vector<Student> v2_poor;
-            auto startV2 = chrono::high_resolution_clock::now();
-            separateStudentsStrategy2(v2_copy, v2_poor, useMedian);
-            auto endV2 = chrono::high_resolution_clock::now();
-            totalV2_sep += chrono::duration<double>(endV2 - startV2).count();
+            cerr << "Failed to read file " << filename << " into std::vector.\n";
+            return;
         }
 
-        // 3. Vector Strategy 3 (Optimized with std::stable_partition)
+        studentCount = vectorStudents.size();
+        sizeStr = to_string(studentCount);
+        skipV2 = (studentCount > 100000);
+
+        string vecOutBelow = "students_below_5_vector_" + sizeStr + ".txt";
+        string vecOutAbove = "students_5_and_above_vector_" + sizeStr + ".txt";
+
+        cout << "\n[1/2] Benchmarking std::vector (" << studentCount << " students)..." << endl;
+
+        for (int r = 1; r <= repetitions; ++r)
         {
-            vector<Student> v3_copy = vectorStudents;
-            vector<Student> v3_poor;
-            auto startV3 = chrono::high_resolution_clock::now();
-            separateStudentsStrategy3(v3_copy, v3_poor, useMedian);
-            auto endV3 = chrono::high_resolution_clock::now();
-            totalV3_sep += chrono::duration<double>(endV3 - startV3).count();
+            cout << "  [vector] Run #" << r << " of " << repetitions << "..." << endl;
+
+            // Strategy 1 (in its own scope so memory is freed immediately)
+            {
+                vector<Student> v1_poor, v1_good;
+                auto startV1 = chrono::high_resolution_clock::now();
+                separateStudentsStrategy1(vectorStudents, v1_poor, v1_good, useMedian);
+                auto endV1 = chrono::high_resolution_clock::now();
+                totalV1_sep += chrono::duration<double>(endV1 - startV1).count();
+
+                if (r == 1)
+                {
+                    auto startW = chrono::high_resolution_clock::now();
+                    writeStudentsToFile(vecOutBelow, v1_poor, useMedian);
+                    writeStudentsToFile(vecOutAbove, v1_good, useMedian);
+                    auto endW = chrono::high_resolution_clock::now();
+                    avgVecWrite = chrono::duration<double>(endW - startW).count();
+                }
+            } // v1_poor and v1_good freed here
+
+            // Strategy 2 (in its own scope)
+            if (!skipV2)
+            {
+                vector<Student> v2_copy = vectorStudents;
+                vector<Student> v2_poor;
+                auto startV2 = chrono::high_resolution_clock::now();
+                separateStudentsStrategy2(v2_copy, v2_poor, useMedian);
+                auto endV2 = chrono::high_resolution_clock::now();
+                totalV2_sep += chrono::duration<double>(endV2 - startV2).count();
+            } // v2_copy and v2_poor freed here
+
+            // Strategy 3 (in its own scope)
+            {
+                vector<Student> v3_copy = vectorStudents;
+                vector<Student> v3_poor;
+                auto startV3 = chrono::high_resolution_clock::now();
+                separateStudentsStrategy3(v3_copy, v3_poor, useMedian);
+                auto endV3 = chrono::high_resolution_clock::now();
+                totalV3_sep += chrono::duration<double>(endV3 - startV3).count();
+            } // v3_copy and v3_poor freed here
         }
 
-        // Vector File Writing
-        auto startVWrite = chrono::high_resolution_clock::now();
-        writeStudentsToFile(vecOutBelow, v1_poor, useMedian);
-        writeStudentsToFile(vecOutAbove, v1_good, useMedian);
-        auto endVWrite = chrono::high_resolution_clock::now();
-        totalVecWrite += chrono::duration<double>(endVWrite - startVWrite).count();
+        // Deallocate vectorStudents before loading list
+        vector<Student>().swap(vectorStudents);
+    }
+    catch (const bad_alloc &)
+    {
+        cerr << "\n[Warning: Out of memory (std::bad_alloc) while testing std::vector with "
+             << filename << ". Skipped remaining tests for this file.]\n";
+        return;
+    }
 
-        // 4. List Strategy 1 (2 new containers)
-        list<Student> l1_poor, l1_good;
-        auto startL1 = chrono::high_resolution_clock::now();
-        separateStudentsListStrategy1(listStudents, l1_poor, l1_good, useMedian);
-        auto endL1 = chrono::high_resolution_clock::now();
-        totalL1_sep += chrono::duration<double>(endL1 - startL1).count();
-
-        // 5. List Strategy 2 (Move poor & erase from original)
+    // --- Part 2: Benchmark std::list (vector is NOT in memory) ---
+    try
+    {
+        list<Student> listStudents;
+        if (!readStudentsFromFileList(filename, listStudents))
         {
-            list<Student> l2_copy = listStudents;
-            list<Student> l2_poor;
-            auto startL2 = chrono::high_resolution_clock::now();
-            separateStudentsListStrategy2(l2_copy, l2_poor, useMedian);
-            auto endL2 = chrono::high_resolution_clock::now();
-            totalL2_sep += chrono::duration<double>(endL2 - startL2).count();
+            cerr << "Failed to read file " << filename << " into std::list.\n";
+            return;
         }
 
-        // 6. List Strategy 3 (Optimized with std::stable_partition + splice)
+        string listOutBelow = "students_below_5_list_" + sizeStr + ".txt";
+        string listOutAbove = "students_5_and_above_list_" + sizeStr + ".txt";
+
+        cout << "\n[2/2] Benchmarking std::list (" << studentCount << " students)..." << endl;
+
+        for (int r = 1; r <= repetitions; ++r)
         {
-            list<Student> l3_copy = listStudents;
-            list<Student> l3_poor;
-            auto startL3 = chrono::high_resolution_clock::now();
-            separateStudentsListStrategy3(l3_copy, l3_poor, useMedian);
-            auto endL3 = chrono::high_resolution_clock::now();
-            totalL3_sep += chrono::duration<double>(endL3 - startL3).count();
+            cout << "  [list] Run #" << r << " of " << repetitions << "..." << endl;
+
+            // Strategy 1 (in its own scope)
+            {
+                list<Student> l1_poor, l1_good;
+                auto startL1 = chrono::high_resolution_clock::now();
+                separateStudentsListStrategy1(listStudents, l1_poor, l1_good, useMedian);
+                auto endL1 = chrono::high_resolution_clock::now();
+                totalL1_sep += chrono::duration<double>(endL1 - startL1).count();
+
+                if (r == 1)
+                {
+                    auto startW = chrono::high_resolution_clock::now();
+                    writeStudentsToFileList(listOutBelow, l1_poor, useMedian);
+                    writeStudentsToFileList(listOutAbove, l1_good, useMedian);
+                    auto endW = chrono::high_resolution_clock::now();
+                    avgListWrite = chrono::duration<double>(endW - startW).count();
+                }
+            } // l1_poor and l1_good freed here
+
+            // Strategy 2 (in its own scope)
+            {
+                list<Student> l2_copy = listStudents;
+                list<Student> l2_poor;
+                auto startL2 = chrono::high_resolution_clock::now();
+                separateStudentsListStrategy2(l2_copy, l2_poor, useMedian);
+                auto endL2 = chrono::high_resolution_clock::now();
+                totalL2_sep += chrono::duration<double>(endL2 - startL2).count();
+            } // l2_copy and l2_poor freed here
+
+            // Strategy 3 (in its own scope)
+            {
+                list<Student> l3_copy = listStudents;
+                list<Student> l3_poor;
+                auto startL3 = chrono::high_resolution_clock::now();
+                separateStudentsListStrategy3(l3_copy, l3_poor, useMedian);
+                auto endL3 = chrono::high_resolution_clock::now();
+                totalL3_sep += chrono::duration<double>(endL3 - startL3).count();
+            } // l3_copy and l3_poor freed here
         }
 
-        // List File Writing
-        auto startLWrite = chrono::high_resolution_clock::now();
-        writeStudentsToFileList(listOutBelow, l1_poor, useMedian);
-        writeStudentsToFileList(listOutAbove, l1_good, useMedian);
-        auto endLWrite = chrono::high_resolution_clock::now();
-        totalListWrite += chrono::duration<double>(endLWrite - startLWrite).count();
+        // Deallocate listStudents
+        list<Student>().swap(listStudents);
+    }
+    catch (const bad_alloc &)
+    {
+        cerr << "\n[Warning: Out of memory (std::bad_alloc) while testing std::list with "
+             << filename << ". Skipped remaining tests for this file.]\n";
+        return;
     }
 
     double avgV1_sep = totalV1_sep / repetitions;
     double avgV2_sep = totalV2_sep / repetitions;
     double avgV3_sep = totalV3_sep / repetitions;
-    double avgVecWrite = totalVecWrite / repetitions;
 
     double avgL1_sep = totalL1_sep / repetitions;
     double avgL2_sep = totalL2_sep / repetitions;
     double avgL3_sep = totalL3_sep / repetitions;
-    double avgListWrite = totalListWrite / repetitions;
 
     // Print Benchmark Summary Table
     cout << fixed << setprecision(5);
@@ -1055,7 +1100,6 @@ void runBenchmarkForFile(const string &filename, bool useMedian, int repetitions
          << setw(20) << avgL3_sep
          << setw(20) << avgListWrite
          << (avgL3_sep + avgListWrite) << "\n";
-
     cout << "-------------------------------------------------------------------------------------------------\n";
 }
 
