@@ -1,4 +1,15 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <list>
+#include <fstream>
+#include <algorithm>
+#include <numeric>
+#include <iomanip>
+#include <sstream>
+#include <iterator>
+#include <utility>
+
 #include "Calculation.h"
 #include "Student.h"
 

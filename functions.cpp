@@ -9,7 +9,6 @@
 #include <limits>
 #include <algorithm>
 #include <chrono>
-#include <bits/stdc++.h>
 
 using namespace std;
 
@@ -126,8 +125,9 @@ void displayStudentResults(vector<Student> &students)
         return;
     }
 
-    // Sort students alphabetically using external compareByName helper
+    // Sort students alphabetically using external compareByMarks helper
     sort(students.begin(), students.end(), compareByName);
+
 
     cout << "\n========== Display Results ==========\n";
     if (students.size() > 1000)
@@ -1111,7 +1111,8 @@ void runAllContainerBenchmarks()
         "students_10000.txt",
         "students_100000.txt",
         "students_1000000.txt",
-        "students_10000000.txt"};
+        // "students_10000000.txt"
+    };
 
     cout << "\nChoose grade calculation method for benchmark:\n";
     cout << "1. Average\n";
