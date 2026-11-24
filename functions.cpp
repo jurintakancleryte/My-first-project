@@ -9,6 +9,7 @@
 #include <limits>
 #include <algorithm>
 #include <chrono>
+#include <iterator>
 
 using namespace std;
 
@@ -127,7 +128,6 @@ void displayStudentResults(vector<Student> &students)
 
     // Sort students alphabetically using external compareByMarks helper
     sort(students.begin(), students.end(), compareByName);
-
 
     cout << "\n========== Display Results ==========\n";
     if (students.size() > 1000)
@@ -861,18 +861,15 @@ void demonstrateMemoryAddresses()
         cout << "std::vector capacity: " << studentVector.capacity()
              << " | size: " << studentVector.size() << "\n";
 
-        // printing memory of address of vector
         cout << "\nstd::vector student object memory addresses:\n";
         for (size_t i = 0; i < studentVector.size(); ++i)
         {
             cout << "  Vector Element #" << (i + 1) << " Address: "
                  << static_cast<const void *>(&studentVector[i]) << "\n";
-            // data type that convert the adress to pointer type so that cout that
         }
 
-        // printing memory of address of vector
         cout << "\nstd::list student object memory addresses:\n";
-        size_t listIdx = 1; // for cout
+        size_t listIdx = 1;
         for (const auto &studentNode : studentList)
         {
             cout << "  List Element #" << listIdx++ << " Address:   "
@@ -883,6 +880,25 @@ void demonstrateMemoryAddresses()
         cin >> choice;
         studentIndex++;
     }
+
+    // Demonstration of Rule of Three (Self-assignment safety and Destructor lifetime)
+    cout << "\n--- Rule of Three Demonstration (Self-Assignment & Destructor) ---\n";
+    Student testStudent("Sample", "Student", {9, 8, 10}, 9.0);
+    cout << "Initial object state:           " << testStudent << "\n"; //because of operator overloading we can print testStudent
+
+    // Self-assignment test via pointer (exercises if (this != &other) guard)
+    Student *selfPtr = &testStudent;
+    testStudent = *selfPtr;
+    cout << "State after self-assignment:    " << testStudent << " (safe, unchanged)\n";
+
+    // Destructor lifetime demonstration
+    {
+        cout << "\nCreating scoped Student object inside inner block...\n";
+        Student scopedDemo("Scoped", "Student", {10, 9, 8}, 9.0);
+        cout << "Scoped Student exists:          " << scopedDemo << "\n";
+        cout << "Exiting inner block (scoped Student lifetime ends, ~Student() invoked)...\n";
+    }
+    cout << "Inner block exited cleanly; destructor released object lifetime.\n";
 
     cout << "\nDemonstration complete!\n";
 }
