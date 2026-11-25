@@ -884,7 +884,7 @@ void demonstrateMemoryAddresses()
     // Demonstration of Rule of Three (Self-assignment safety and Destructor lifetime)
     cout << "\n--- Rule of Three Demonstration (Self-Assignment & Destructor) ---\n";
     Student testStudent("Sample", "Student", {9, 8, 10}, 9.0);
-    cout << "Initial object state:           " << testStudent << "\n"; //because of operator overloading we can print testStudent
+    cout << "Initial object state:           " << testStudent << "\n"; // because of operator overloading we can print testStudent
 
     // Self-assignment test via pointer (exercises if (this != &other) guard)
     Student *selfPtr = &testStudent;
@@ -899,6 +899,16 @@ void demonstrateMemoryAddresses()
         cout << "Exiting inner block (scoped Student lifetime ends, ~Student() invoked)...\n";
     }
     cout << "Inner block exited cleanly; destructor released object lifetime.\n";
+
+    // Demonstration of Abstract Base Class Human & Polymorphism (V1.5)
+    cout << "\n--- Abstract Base Class Human & Polymorphism Demonstration (V1.5) ---\n";
+    cout << "Human is an abstract base class (contains pure virtual print(ostream&) = 0).\n";
+    const Human &humanRef = testStudent;  //reference, setting human reference to a object of student class 
+                                            //(since human class cant have object (abstract lcass))
+    cout << "Polymorphic print() call via const Human& reference: ";
+    humanRef.print(cout);  //polymorphism
+    cout << "\nAccessing base class getters via Human&: "
+         << humanRef.getFirstName() << " " << humanRef.getLastName() << "\n";
 
     cout << "\nDemonstration complete!\n";
 }

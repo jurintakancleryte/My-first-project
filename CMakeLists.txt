@@ -6,12 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
 main.cpp
+Human.cpp
 Student.cpp
 functions.cpp
 Calculation.cpp
 )
 
 set(HEADERS
+Human.h
 Student.h
 functions.h
 Calculation.h
