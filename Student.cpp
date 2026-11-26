@@ -16,53 +16,61 @@
 using namespace std;
 
 // Degautl constructor
-Student::Student() : name_(""), surname_(""), homework_(), exam_(0.0) {}
+Student::Student() : homework_(), exam_(0.0) {}
 // created a studetn with empty name and all other default values
 
 // Parameterized constructor
 Student::Student(const string &name, const string &surname, const vector<int> &homework, double exam)
 {
-    name_ = name;
-    surname_ = surname;
     homework_ = homework;
     exam_ = exam;
 }
 
-Student::~Student(){
+// Dectructor
+Student::~Student()
+{
     // Standard library members (string, vector) automatically release their own resources.
     // Explicit destructor body satisfies the Rule of Three requirement.
 }
 
 // Copy constructor
-Student::Student(const Student& other)
-    : name_(other.name_), surname_(other.surname_),
-      homework_(other.homework_), exam_(other.exam_)
+Student::Student(const Student &other)
+    : Human(other), homework_(other.homework_), exam_(other.exam_)
 {
 }
 
 // Copy assignment operator
-Student& Student::operator=(const Student& other)
+Student &Student::operator=(const Student &other)
 {
-    // Guard against self-assignment (e.g. s = s)  
-    if (this != &other) 
+    // Guard against self-assignment (e.g. s = s)
+    if (this != &other)
     {
-        name_ = other.name_;
-        surname_ = other.surname_;
+        Human::operator=(other); // Copies inherited Human portion (firstName_, lastName_)
         homework_ = other.homework_;
         exam_ = other.exam_;
     }
     return *this; // Return *this for assignment chaining (e.g. s1 = s2 = s3)
 }
 
+void Student::print(ostream &out) const  //implimentation of pure virtual function
+{
+    out << firstName_ << " " << lastName_;
+    for (int hw : homework_)
+    {
+        out << " " << hw;
+    }
+    out << " " << exam_;
+}
+
 // getters
 string Student::getName() const
 {
-    return name_;
+    return firstName_;
 }
 
 string Student::getSurname() const
 {
-    return surname_;
+    return lastName_;
 }
 
 const vector<int> Student::getHomework() const
@@ -78,12 +86,12 @@ double Student::getExam() const
 // setters
 void Student::setName(const string &name)
 {
-    name_ = name;
+    firstName_ = name;
 }
 
 void Student::setSurname(const string &surname)
 {
-    surname_ = surname;
+    lastName_ = surname;
 }
 
 void Student::setHomework(const vector<int> &homework)
@@ -168,8 +176,8 @@ bool Student::readFromStream(istream &is, int homeworkCount)
     }
 
     // assign validated values to member variables
-    name_ = tempName;
-    surname_ = tempSurname;
+    firstName_ = tempName;
+    lastName_ = tempSurname;
     homework_ = move(tempHomework);
     // move - wont remove previous values (memory management)
     //  homework_ = tempHomework
@@ -179,18 +187,24 @@ bool Student::readFromStream(istream &is, int homeworkCount)
 }
 
 // Overloaded output operator (<<) to output a Student's information to a generic ostream
+// ostream &operator<<(ostream &os, const Student &s)
+// {
+//     os << s.name_ << " " << s.surname_;
+//     for (int hw : s.homework_)
+//     {
+//         os << " " << hw;
+//     }
+//     os << " " << s.exam_;
+//     return os;
+// }
+
 ostream& operator<<(ostream& os, const Student& s)
 {
-    os << s.name_ << " " << s.surname_;
-    for (int hw : s.homework_)
-    {
-        os << " " << hw;
-    }
-    os << " " << s.exam_;
+    s.print(os);
     return os;
 }
 
-istream& operator>>(istream& is, Student& s)
+istream &operator>>(istream &is, Student &s)
 {
     string line;
     // Skip any leading empty lines or whitespace
@@ -202,9 +216,9 @@ istream& operator>>(istream& is, Student& s)
         }
     }
 
-    if (line.empty() || line.find_first_not_of(" \t\r\n") == string::npos) //error checking (for space and ect)
+    if (line.empty() || line.find_first_not_of(" \t\r\n") == string::npos) // error checking (for space and ect)
     {
-        is.setstate(ios::failbit); //the process - failed
+        is.setstate(ios::failbit); // the process - failed
         return is;
     }
 
@@ -216,7 +230,7 @@ istream& operator>>(istream& is, Student& s)
         return is;
     }
 
-    vector<string> tokens; //counting for all left data
+    vector<string> tokens; // counting for all left data
     string tok;
     while (ss >> tok)
     {
@@ -232,19 +246,19 @@ istream& operator>>(istream& is, Student& s)
     vector<int> tempHomework;
     double tempExam = 0.0;
 
-    //error handling
+    // error handling
     try
     {
         if (tokens.size() == 1)
         {
-            tempExam = stod(tokens[0]); //stod - string to double
+            tempExam = stod(tokens[0]); // stod - string to double
         }
         else
         {
             tempHomework.reserve(tokens.size() - 1);
             for (size_t i = 0; i < tokens.size() - 1; ++i)
             {
-                int g = stoi(tokens[i]); //stoi - string to integer
+                int g = stoi(tokens[i]); // stoi - string to integer
                 if (g < 1 || g > 10)
                 {
                     is.setstate(ios::failbit);
@@ -262,15 +276,15 @@ istream& operator>>(istream& is, Student& s)
         }
     }
 
-    //all catch handler - every tyoe of error
+    // all catch handler - every type of error
     catch (...)
     {
         is.setstate(ios::failbit);
         return is;
     }
 
-    s.name_ = tempName;
-    s.surname_ = tempSurname;
+    s.firstName_ = tempName;
+    s.lastName_ = tempSurname;
     s.homework_ = std::move(tempHomework);
     s.exam_ = tempExam;
 

@@ -1,6 +1,8 @@
 #ifndef STUDENT_CLASS
 #define STUDENT_CLASS
 
+#include "Human.h"
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -16,11 +18,11 @@
 using namespace std;
 
 // declare but not define!!!!
-class Student
+class Student : public Human
 {
 private:
-    string name_;
-    string surname_;
+    // string name_;
+    // string surname_;
     vector<int> homework_;
     double exam_;
 
@@ -37,6 +39,9 @@ public:
 
     // Copy assignment operator
     Student &operator=(const Student &other);
+
+    // --- Pure Virtual Function Implementation ---
+    void print(ostream &out) const override;
 
     // getters
     string getName() const;
@@ -61,7 +66,7 @@ public:
 
     // --- Stream Operator Overloads ---
     friend ostream &operator<<(ostream &os, const Student &s);
-    friend istream &operator>>(istream &is, Student &s); 
+    friend istream &operator>>(istream &is, Student &s);
 };
 
 // Overloaded stream operators (non-member declarations)
